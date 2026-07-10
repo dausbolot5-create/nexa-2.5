@@ -17,6 +17,7 @@ import { Route as AuthedSupplierRouteImport } from './routes/_authed.supplier'
 import { Route as AuthedStokOpnameRouteImport } from './routes/_authed.stok-opname'
 import { Route as AuthedStokAlertRouteImport } from './routes/_authed.stok-alert'
 import { Route as AuthedResepRouteImport } from './routes/_authed.resep'
+import { Route as AuthedPortalPelangganRouteImport } from './routes/_authed.portal-pelanggan'
 import { Route as AuthedPenggunaRouteImport } from './routes/_authed.pengguna'
 import { Route as AuthedPengaturanRouteImport } from './routes/_authed.pengaturan'
 import { Route as AuthedPembelianRouteImport } from './routes/_authed.pembelian'
@@ -66,6 +67,11 @@ const AuthedStokAlertRoute = AuthedStokAlertRouteImport.update({
 const AuthedResepRoute = AuthedResepRouteImport.update({
   id: '/resep',
   path: '/resep',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedPortalPelangganRoute = AuthedPortalPelangganRouteImport.update({
+  id: '/portal-pelanggan',
+  path: '/portal-pelanggan',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedPenggunaRoute = AuthedPenggunaRouteImport.update({
@@ -139,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/pembelian': typeof AuthedPembelianRoute
   '/pengaturan': typeof AuthedPengaturanRoute
   '/pengguna': typeof AuthedPenggunaRoute
+  '/portal-pelanggan': typeof AuthedPortalPelangganRoute
   '/resep': typeof AuthedResepRoute
   '/stok-alert': typeof AuthedStokAlertRoute
   '/stok-opname': typeof AuthedStokOpnameRoute
@@ -159,6 +166,7 @@ export interface FileRoutesByTo {
   '/pembelian': typeof AuthedPembelianRoute
   '/pengaturan': typeof AuthedPengaturanRoute
   '/pengguna': typeof AuthedPenggunaRoute
+  '/portal-pelanggan': typeof AuthedPortalPelangganRoute
   '/resep': typeof AuthedResepRoute
   '/stok-alert': typeof AuthedStokAlertRoute
   '/stok-opname': typeof AuthedStokOpnameRoute
@@ -181,6 +189,7 @@ export interface FileRoutesById {
   '/_authed/pembelian': typeof AuthedPembelianRoute
   '/_authed/pengaturan': typeof AuthedPengaturanRoute
   '/_authed/pengguna': typeof AuthedPenggunaRoute
+  '/_authed/portal-pelanggan': typeof AuthedPortalPelangganRoute
   '/_authed/resep': typeof AuthedResepRoute
   '/_authed/stok-alert': typeof AuthedStokAlertRoute
   '/_authed/stok-opname': typeof AuthedStokOpnameRoute
@@ -203,6 +212,7 @@ export interface FileRouteTypes {
     | '/pembelian'
     | '/pengaturan'
     | '/pengguna'
+    | '/portal-pelanggan'
     | '/resep'
     | '/stok-alert'
     | '/stok-opname'
@@ -223,6 +233,7 @@ export interface FileRouteTypes {
     | '/pembelian'
     | '/pengaturan'
     | '/pengguna'
+    | '/portal-pelanggan'
     | '/resep'
     | '/stok-alert'
     | '/stok-opname'
@@ -244,6 +255,7 @@ export interface FileRouteTypes {
     | '/_authed/pembelian'
     | '/_authed/pengaturan'
     | '/_authed/pengguna'
+    | '/_authed/portal-pelanggan'
     | '/_authed/resep'
     | '/_authed/stok-alert'
     | '/_authed/stok-opname'
@@ -313,6 +325,13 @@ declare module '@tanstack/react-router' {
       path: '/resep'
       fullPath: '/resep'
       preLoaderRoute: typeof AuthedResepRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/portal-pelanggan': {
+      id: '/_authed/portal-pelanggan'
+      path: '/portal-pelanggan'
+      fullPath: '/portal-pelanggan'
+      preLoaderRoute: typeof AuthedPortalPelangganRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/pengguna': {
@@ -407,6 +426,7 @@ interface AuthedRouteChildren {
   AuthedPembelianRoute: typeof AuthedPembelianRoute
   AuthedPengaturanRoute: typeof AuthedPengaturanRoute
   AuthedPenggunaRoute: typeof AuthedPenggunaRoute
+  AuthedPortalPelangganRoute: typeof AuthedPortalPelangganRoute
   AuthedResepRoute: typeof AuthedResepRoute
   AuthedStokAlertRoute: typeof AuthedStokAlertRoute
   AuthedStokOpnameRoute: typeof AuthedStokOpnameRoute
@@ -425,6 +445,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedPembelianRoute: AuthedPembelianRoute,
   AuthedPengaturanRoute: AuthedPengaturanRoute,
   AuthedPenggunaRoute: AuthedPenggunaRoute,
+  AuthedPortalPelangganRoute: AuthedPortalPelangganRoute,
   AuthedResepRoute: AuthedResepRoute,
   AuthedStokAlertRoute: AuthedStokAlertRoute,
   AuthedStokOpnameRoute: AuthedStokOpnameRoute,
