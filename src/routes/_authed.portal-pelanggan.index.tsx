@@ -1,12 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, FileText, Pill, TrendingUp, Plus, ArrowRight } from "lucide-react";
+import { ShoppingBag, FileText, Pill, TrendingUp, Plus, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatRupiah } from "@/lib/mockData";
 import { StatusBadge } from "@/components/StatusBadge";
-import { PageHeader } from "@/components/PageHeader";
+import { useAuth } from "@/lib/auth";
 
-export const Route = createFileRoute("/_authed/portal-pelanggan")({
+export const Route = createFileRoute("/_authed/portal-pelanggan/")({
   component: PortalPelangganDashboard,
 });
 
@@ -41,6 +41,8 @@ const reminders = [
 ];
 
 function PortalPelangganDashboard() {
+  const { user } = useAuth();
+
   return (
     <div className="space-y-6">
       {/* Hero Section */}
@@ -49,7 +51,7 @@ function PortalPelangganDashboard() {
         <div className="absolute -right-8 bottom-0 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
         <div className="relative z-10">
           <p className="text-sm opacity-90 font-medium">Selamat datang di Apotek Nexa,</p>
-          <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight">Siti Rahmawati 👋</h1>
+          <h1 className="mt-1 text-2xl md:text-3xl font-bold tracking-tight">{user?.name} 👋</h1>
           <p className="mt-2 text-sm opacity-90 max-w-md leading-relaxed">
             Pesan obat, unggah resep, dan atur pengingat minum obat harian Anda dengan mudah di satu
             tempat.
@@ -59,15 +61,21 @@ function PortalPelangganDashboard() {
               size="sm"
               variant="secondary"
               className="bg-white text-primary hover:bg-white/90 shadow-sm border-0 font-semibold h-9 px-4"
+              asChild
             >
-              <Plus className="mr-2 h-4 w-4" /> Pesan Obat
+              <Link to="/portal-pelanggan/pesanan">
+                <Plus className="mr-2 h-4 w-4" /> Pesan Obat
+              </Link>
             </Button>
             <Button
               size="sm"
               variant="outline"
               className="border-white/30 bg-white/10 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground h-9 px-4"
+              asChild
             >
-              <FileText className="mr-2 h-4 w-4" /> Unggah Resep
+              <Link to="/portal-pelanggan/resep">
+                <FileText className="mr-2 h-4 w-4" /> Unggah Resep
+              </Link>
             </Button>
           </div>
         </div>
@@ -144,8 +152,11 @@ function PortalPelangganDashboard() {
               variant="ghost"
               size="sm"
               className="text-xs text-primary font-medium hover:text-primary/80"
+              asChild
             >
-              Lihat Semua <ArrowRight className="ml-1 h-3 w-3" />
+              <Link to="/portal-pelanggan/pesanan">
+                Lihat Semua <ArrowRight className="ml-1 h-3 w-3" />
+              </Link>
             </Button>
           </div>
           <div className="flex flex-col p-2">

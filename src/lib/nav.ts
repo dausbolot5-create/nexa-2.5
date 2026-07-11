@@ -13,6 +13,8 @@ import {
   UserCog,
   Settings,
   Bell,
+  Heart,
+  User,
   type LucideIcon,
 } from "lucide-react";
 import type { Role } from "./mockData";
@@ -34,17 +36,52 @@ export const navItems: NavItem[] = [
     group: "Utama",
   },
   {
+    to: "/portal-pelanggan",
+    label: "Beranda Pelanggan",
+    icon: LayoutDashboard,
+    roles: ["pelanggan"],
+    group: "Portal",
+  },
+  {
+    to: "/portal-pelanggan/pesanan",
+    label: "Pesanan Saya",
+    icon: ShoppingCart,
+    roles: ["pelanggan"],
+    group: "Portal",
+  },
+  {
+    to: "/portal-pelanggan/resep",
+    label: "Resep Digital",
+    icon: FileText,
+    roles: ["pelanggan"],
+    group: "Portal",
+  },
+  {
+    to: "/portal-pelanggan/obat",
+    label: "Obat Rutin",
+    icon: Pill,
+    roles: ["pelanggan"],
+    group: "Portal",
+  },
+  {
+    to: "/portal-pelanggan/kesehatan",
+    label: "Riwayat Kesehatan",
+    icon: Heart,
+    roles: ["pelanggan"],
+    group: "Portal",
+  },
+  {
+    to: "/portal-pelanggan/profil",
+    label: "Profil",
+    icon: User,
+    roles: ["pelanggan"],
+    group: "Portal",
+  },
+  {
     to: "/kasir",
     label: "Kasir / POS",
     icon: ShoppingCart,
     roles: ["admin", "kasir"],
-    group: "Utama",
-  },
-  {
-    to: "/portal-pelanggan",
-    label: "Portal Pelanggan",
-    icon: Users,
-    roles: ["admin", "apoteker", "kasir"],
     group: "Utama",
   },
   {

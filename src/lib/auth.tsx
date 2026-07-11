@@ -3,7 +3,7 @@ import { users, type Role, type User } from "./mockData";
 
 interface AuthState {
   user: User | null;
-  login: (username: string, password: string) => { ok: boolean; error?: string };
+  login: (username: string, password: string) => { ok: boolean; error?: string; user?: User };
   logout: () => void;
   can: (roles: Role[]) => boolean;
 }
@@ -26,12 +26,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (username: string, password: string) => {
-    const found = users.find((u) => u.username === username.trim() && u.password === password);
-    if (!found) return { ok: false, error: "Username atau kata sandi salah" };
+    const input = username.trim();
+    const found = users.find(
+      (u) => (u.username === input || u.email === input) && u.password === password,
+    );
+    if (!found) return { ok: false, error: "Username, Email, atau kata sandi salah" };
     if (!found.active) return { ok: false, error: "Akun ini dinonaktifkan" };
     setUser(found);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(found));
-    return { ok: true };
+    return { ok: true, user: found };
   };
 
   const logout = () => {

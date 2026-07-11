@@ -1,4 +1,4 @@
-export type Role = "admin" | "apoteker" | "kasir";
+export type Role = "admin" | "apoteker" | "kasir" | "pelanggan";
 
 export interface User {
   id: string;
@@ -96,7 +96,7 @@ export const users: User[] = [
     username: "admin",
     password: "admin123",
     role: "admin",
-    email: "admin@apoteksehat.id",
+    email: "admin@sipoa.com",
     phone: "0812-1000-0001",
     active: true,
   },
@@ -122,6 +122,16 @@ export const users: User[] = [
   },
   {
     id: "U04",
+    name: "Siti Rahmawati",
+    username: "pelanggan",
+    password: "pelanggan123",
+    role: "pelanggan",
+    email: "siti.rahma@email.com",
+    phone: "0812-1234-5678",
+    active: true,
+  },
+  {
+    id: "U05",
     name: "Bagas Wibowo",
     username: "kasir2",
     password: "kasir123",
@@ -365,4 +375,5 @@ export const roleLabel: Record<Role, string> = {
   admin: "Administrator",
   apoteker: "Apoteker",
   kasir: "Kasir",
+  pelanggan: "Pelanggan",
 };

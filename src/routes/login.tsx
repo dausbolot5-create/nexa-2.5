@@ -17,6 +17,7 @@ const demoAccounts = [
   { role: "admin" as const, username: "admin", password: "admin123" },
   { role: "apoteker" as const, username: "apoteker", password: "apoteker123" },
   { role: "kasir" as const, username: "kasir", password: "kasir123" },
+  { role: "pelanggan" as const, username: "pelanggan", password: "pelanggan123" },
 ];
 
 function LoginPage() {
@@ -37,7 +38,12 @@ function LoginPage() {
       setLoading(false);
       if (res.ok) {
         toast.success("Berhasil masuk", { description: "Selamat datang di Apotek Nexa" });
-        navigate({ to: "/dashboard" });
+        // Jika pelanggan arahkan ke portal-pelanggan, selain itu ke dashboard
+        if (res.user?.role === "pelanggan") {
+          navigate({ to: "/portal-pelanggan" });
+        } else {
+          navigate({ to: "/dashboard" });
+        }
       } else {
         toast.error("Gagal masuk", { description: res.error });
       }

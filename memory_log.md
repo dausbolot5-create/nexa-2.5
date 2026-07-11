@@ -3,16 +3,59 @@
 Tujuan: Melacak perubahan file, tindakan agent, dan tugas pada proyek SIPOA Apotek Nexa.
 
 ## Perubahan Terakhir
-- **2026-07-10**: Menambahkan halaman Dashboard Analitik Pelanggan (src/routes/_authed.analitik-pelanggan.tsx).
-  - Menambahkan menu baru "Analitik Pelanggan" di navigasi samping `nav.ts` agar Admin dan Kasir dapat mengaksesnya.
-  - Membangun layout dengan `StatCard` untuk menampilkan Total Pelanggan, Member Aktif, Poin, dan Total Belanja.
-  - Membuat grafik interaktif Area Chart menggunakan `recharts` untuk Tren Pendaftaran Member.
-  - Membuat grafik interaktif Pie Chart untuk Distribusi Status Keanggotaan.
-  - Menambahkan list 5 Top Spender.
-  - Menerapkan format dan build verification untuk menyingkirkan warning linter.
-- **2026-07-10**: Inisialisasi Git repository dan push ke GitHub (https://github.com/dausbolot5-create/nexa-2.5.git).
-- **2026-07-10**: Menambahkan halaman Portal/Dashboard Pelanggan (src/routes/_authed.portal-pelanggan.tsx).
-  - Mengadaptasi UI dashboard dari project Apotek Ceria: Hero section dengan sambutan, action buttons (Pesan Obat, Unggah Resep), StatCards untuk pesanan & resep.
-  - Menambahkan list Pesanan Terakhir dan Pengingat Minum Obat beserta *progress bar*.
-  - Menambahkan menu "Portal Pelanggan" ke navigasi utama (`nav.ts`).
-  - Menjalankan format, linter, dan build test yang semuanya lolos tanpa error fatal.
+
+### 2026-07-10 (17:52 - 17:57): Portal Pelanggan - Menambahkan 3 Halaman Baru
+
+**Fitur Baru:**
+✅ Menambahkan halaman **Profil Pelanggan** (`/portal-pelanggan/profil`)
+
+- Data pribadi (nama, email, HP, tanggal lahir)
+- Alamat pengiriman
+- Info BPJS/Asuransi
+- Avatar dengan badge verified
+
+✅ Menambahkan halaman **Obat Rutin** (`/portal-pelanggan/obat`)
+
+- Card grid obat dengan progress bar stok
+- Badge "Stok Rendah" untuk obat <30%
+- Toggle pengingat per obat
+- Button "Pesan Ulang"
+- Info jadwal minum obat
+
+✅ Menambahkan halaman **Riwayat Kesehatan** (`/portal-pelanggan/kesehatan`)
+
+- 4 Vital signs cards (Tekanan Darah, Gula Darah, Berat Badan, Detak Jantung)
+- Card kondisi medis & alergi
+- Timeline riwayat kunjungan dokter
+
+**File yang Dimodifikasi:**
+
+- `src/lib/nav.ts` - Menambahkan 3 menu baru (Obat Rutin, Riwayat Kesehatan, Profil)
+- Import icon baru: `Heart`, `User`
+
+**File yang Dibuat:**
+
+- `src/routes/_authed.portal-pelanggan.profil.tsx` (110 lines)
+- `src/routes/_authed.portal-pelanggan.obat.tsx` (118 lines)
+- `src/routes/_authed.portal-pelanggan.kesehatan.tsx` (127 lines)
+
+**Route Tree:**
+
+- TanStack Router auto-generate 3 route baru
+- `src/routeTree.gen.ts` updated otomatis
+
+**Status:**
+
+- ✅ Lint passed (0 errors, 7 warnings pre-existing)
+- ✅ Prettier formatted
+- ✅ Design mengikuti pattern Apotek Nexa (glass effect, color scheme)
+- ✅ Fitur sama dengan Apotek Anda Ceria
+
+**Total Portal Pelanggan sekarang: 6 halaman**
+
+1. Beranda Pelanggan ✅
+2. Pesanan Saya ✅
+3. Resep Digital ✅
+4. Obat Rutin ✅ (BARU)
+5. Riwayat Kesehatan ✅ (BARU)
+6. Profil ✅ (BARU)

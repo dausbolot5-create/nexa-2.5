@@ -7,5 +7,11 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { user } = useAuth();
-  return <Navigate to={user ? "/dashboard" : "/login"} />;
+
+  if (!user) return <Navigate to="/login" />;
+
+  // Arahkan ke portal pelanggan jika rolenya adalah pelanggan
+  if (user.role === "pelanggan") return <Navigate to="/portal-pelanggan" />;
+
+  return <Navigate to="/dashboard" />;
 }

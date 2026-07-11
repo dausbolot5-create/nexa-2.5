@@ -16,7 +16,12 @@ export const Route = createFileRoute("/_authed/pengguna")({
   component: PenggunaPage,
 });
 
-const roleTone = { admin: "destructive", apoteker: "info", kasir: "success" } as const;
+const roleTone = {
+  admin: "destructive",
+  apoteker: "info",
+  kasir: "success",
+  pelanggan: "default",
+} as const;
 
 function PenggunaPage() {
   const { user } = useAuth();
