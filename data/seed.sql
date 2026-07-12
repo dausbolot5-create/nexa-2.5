@@ -1,0 +1,31 @@
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  username TEXT NOT NULL UNIQUE,
+  password TEXT NOT NULL,
+  role TEXT NOT NULL CHECK(role IN ('admin', 'apoteker', 'kasir', 'pelanggan')),
+  email TEXT NOT NULL UNIQUE,
+  phone TEXT NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS medicines (
+  id TEXT PRIMARY KEY, code TEXT NOT NULL UNIQUE, name TEXT NOT NULL,
+  category TEXT NOT NULL, unit TEXT NOT NULL, price INTEGER NOT NULL,
+  cost INTEGER NOT NULL, stock INTEGER NOT NULL DEFAULT 0,
+  min_stock INTEGER NOT NULL DEFAULT 10, expiry DATE NOT NULL,
+  supplier TEXT NOT NULL, location TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS customers (
+  id TEXT PRIMARY KEY, name TEXT NOT NULL, phone TEXT NOT NULL,
+  email TEXT, points INTEGER NOT NULL DEFAULT 0,
+  member INTEGER NOT NULL DEFAULT 0, total_spent INTEGER NOT NULL DEFAULT 0,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+CREATE TABLE IF NOT EXISTS sales (
+  id TEXT PRIMARY KEY, code TEXT NOT NULL UNIQUE, date DATE NOT NULL,
+  cashier TEXT NOT NULL, customer TEXT NOT NULL, items INTEGER NOT NULL,
+  total INTEGER NOT NULL, method TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+INSERT OR IGNORE INTO users (id, name, username, password, role, email, phone) VALUES 
+('U01', 'Dewi Anggraini', 'admin', '$2a$10$xyz...', 'admin', 'admin@sipoa.com', '0812-1000-0001');
