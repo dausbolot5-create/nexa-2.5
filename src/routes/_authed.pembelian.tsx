@@ -8,14 +8,23 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { purchases, formatRupiah } from "@/lib/mockData";
+import { db } from "@/db";
+import { purchases as purchasesTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+
+const getPurchases = createServerFn({ method: "GET" }).handler(async () => {
+  return await db.select().from(purchasesTable);
+});
 
 export const Route = createFileRoute("/_authed/pembelian")({
+  loader: async () => await getPurchases(),
   component: PembelianPage,
 });
 
 const tone = { diterima: "success", dipesan: "info", sebagian: "warning" } as const;
 
 function PembelianPage() {
+  const purchases = Route.useLoaderData();
   const [q, setQ] = useState("");
   const filtered = useMemo(
     () =>

@@ -7,13 +7,22 @@ import { StatCard } from "@/components/StatCard";
 import { StatusBadge } from "@/components/StatusBadge";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { medicines, formatRupiah } from "@/lib/mockData";
+import { medicines as seed, formatRupiah } from "@/lib/mockData";
+import { db } from "@/db";
+import { medicines as medicinesTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+
+const getMedicines = createServerFn({ method: "GET" }).handler(async () => {
+  return await db.select().from(medicinesTable);
+});
 
 export const Route = createFileRoute("/_authed/inventori")({
+  loader: async () => await getMedicines(),
   component: InventoriPage,
 });
 
 function InventoriPage() {
+  const medicines = Route.useLoaderData();
   const [q, setQ] = useState("");
   const filtered = useMemo(
     () =>

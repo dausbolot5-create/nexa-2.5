@@ -37,8 +37,39 @@ import {
 } from "@/components/ui/select";
 import { customers as initialCustomers, formatRupiah, Customer } from "@/lib/mockData";
 import { toast } from "sonner";
+import { db } from "@/db";
+import { customers as customersTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+import { eq } from "drizzle-orm";
+import { useRouter } from "@tanstack/react-router";
+
+const getCustomers = createServerFn({ method: "GET" }).handler(async () => {
+  return await db.select().from(customersTable);
+});
+
+const saveCustomerFn = createServerFn({ method: "POST" })
+  .validator((d: Record<string, unknown>) => d)
+  .handler(async ({ data }) => {
+    await db.insert(customersTable).values(data as unknown as Customer);
+  });
+
+const updateCustomerFn = createServerFn({ method: "POST" })
+  .validator((d: { id: string; data: Record<string, unknown> }) => d)
+  .handler(async ({ data: { id, data } }) => {
+    await db
+      .update(customersTable)
+      .set(data as unknown as Partial<Customer>)
+      .where(eq(customersTable.id, id));
+  });
+
+const deleteCustomerFn = createServerFn({ method: "POST" })
+  .validator((id: string) => id)
+  .handler(async ({ data: id }) => {
+    await db.delete(customersTable).where(eq(customersTable.id, id));
+  });
 
 export const Route = createFileRoute("/_authed/pelanggan")({
+  loader: async () => await getCustomers(),
   component: PelangganPage,
 });
 
@@ -50,10 +81,12 @@ const formSchema = z.object({
 });
 
 function PelangganPage() {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const loaderData = Route.useLoaderData();
+  const [customers, setCustomers] = useState<Customer[]>(loaderData);
   const [q, setQ] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -67,8 +100,10 @@ function PelangganPage() {
 
   const filtered = useMemo(
     () =>
-      customers.filter((c) => (c.name + c.phone + c.email).toLowerCase().includes(q.toLowerCase())),
-    [q, customers],
+      loaderData.filter((c: Customer) =>
+        (c.name + c.phone + c.email).toLowerCase().includes(q.toLowerCase()),
+      ),
+    [loaderData, q],
   );
 
   const openDialog = (customer?: Customer) => {
@@ -92,34 +127,41 @@ function PelangganPage() {
     setIsDialogOpen(true);
   };
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (editingCustomer) {
-      setCustomers((prev) =>
-        prev.map((c) =>
-          c.id === editingCustomer.id ? { ...c, ...values, member: values.member === "true" } : c,
-        ),
-      );
-      toast.success("Pelanggan berhasil diperbarui");
-    } else {
-      const newCustomer: Customer = {
-        id: `C${String(customers.length + 1).padStart(2, "0")}`,
-        points: 0,
-        totalSpent: 0,
+      const updateData = {
         name: values.name,
         phone: values.phone,
         email: values.email,
         member: values.member === "true",
       };
-      setCustomers((prev) => [newCustomer, ...prev]);
+      await updateCustomerFn({ id: editingCustomer.id, data: updateData });
+      toast.success("Pelanggan berhasil diperbarui");
+    } else {
+      const newCustomer = {
+        id: crypto.randomUUID(),
+        code: `CUST-${Date.now().toString().slice(-4)}`,
+        name: values.name,
+        phone: values.phone,
+        email: values.email,
+        member: values.member === "true",
+        points: 0,
+        totalSpent: 0,
+        lastVisit: new Date().toISOString().split("T")[0],
+      };
+      await saveCustomerFn({ data: newCustomer });
       toast.success("Pelanggan baru berhasil ditambahkan");
     }
+
     setIsDialogOpen(false);
+    router.invalidate();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm("Apakah Anda yakin ingin menghapus pelanggan ini?")) {
-      setCustomers((prev) => prev.filter((c) => c.id !== id));
+      await deleteCustomerFn({ data: id });
       toast.success("Pelanggan berhasil dihapus");
+      router.invalidate();
     }
   };
 
@@ -144,7 +186,7 @@ function PelangganPage() {
           </Button>
         }
       >
-        {filtered.map((c) => (
+        {filtered.map((c: Customer) => (
           <TableRow key={c.id}>
             <TableCell>
               <div className="flex items-center gap-2">

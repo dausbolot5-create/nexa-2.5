@@ -19,12 +19,20 @@ import { StatCard } from "@/components/StatCard";
 import { PageHeader } from "@/components/PageHeader";
 import { ScrollReveal } from "@/components/animations";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { formatRupiah, customers } from "@/lib/mockData";
+import { formatRupiah } from "@/lib/mockData";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { db } from "@/db";
+import { customers as customersTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+
+const getCustomers = createServerFn({ method: "GET" }).handler(async () => {
+  return await db.select().from(customersTable);
+});
 
 export const Route = createFileRoute("/_authed/analitik-pelanggan")({
-  component: CustomerAnalytics,
+  loader: async () => await getCustomers(),
+  component: AnalitikPelangganPage,
+  errorComponent: ({ error }) => <div>Error in AnalitikPelanggan: {error.message}</div>,
 });
 
 const pieColors = ["var(--chart-1)", "var(--chart-2)"];
@@ -40,7 +48,8 @@ const memberTrend = [
   { month: "Jul", newMembers: 32 },
 ];
 
-function CustomerAnalytics() {
+function AnalitikPelangganPage() {
+  const customers = Route.useLoaderData();
   const totalCustomers = customers.length;
   const activeMembers = customers.filter((c) => c.member).length;
   const generalCustomers = totalCustomers - activeMembers;

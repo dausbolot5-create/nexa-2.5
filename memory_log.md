@@ -59,3 +59,23 @@ Tujuan: Melacak perubahan file, tindakan agent, dan tugas pada proyek SIPOA Apot
 4. Obat Rutin ✅ (BARU)
 5. Riwayat Kesehatan ✅ (BARU)
 6. Profil ✅ (BARU)
+
+---
+
+### 2026-07-13: Setup Working Directory & Persistent Memory
+
+**Action:** Set `/mnt/d/Projects/Kampus/apotek-nexa-main` as working directory for opencode session
+
+**Context:**
+
+- Project: SIPOA Apotek Nexa (TanStack Start + React 19 + TypeScript)
+- Using TanStack Router, Tailwind CSS v4, Radix UI
+- Connected to Lovable (avoid rewriting git history)
+- Recent completion: Portal Pelanggan - 3 new pages added (Profil, Obat Rutin, Riwayat Kesehatan)
+- All bugs fixed as of 2026-07-11 (login type errors, role guards, email/username flexibility)
+
+**Key Files:**
+
+- `memory_log.md` - This persistent memory log
+- `AGENTS.md` - Project guidelines (Lovable integration)
+- `bug_report_temp.md` - Historical bug fixes

@@ -14,11 +14,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatRupiah, medicines } from "@/lib/mockData";
+import { formatRupiah } from "@/lib/mockData";
 import { medImage } from "@/lib/medImages";
+import { db } from "@/db";
+import { medicines as medicinesTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+import { sql } from "drizzle-orm";
+import { useRouter } from "@tanstack/react-router";
+
+const getMedicines = createServerFn({ method: "GET" }).handler(async () => {
+  return await db.select().from(medicinesTable);
+});
+
+const updateStock = createServerFn({ method: "POST" })
+  .validator((items: { id: string; qty: number }[]) => items)
+  .handler(async ({ data }) => {
+    // Loop is fine for small carts, ponytail: O(n) queries instead of batch update. Add batch when cart size > 50.
+    for (const item of data) {
+      await db.execute(sql`UPDATE medicines SET stock = stock - ${item.qty} WHERE id = ${item.id}`);
+    }
+  });
 
 export const Route = createFileRoute("/_authed/kasir")({
+  loader: async () => await getMedicines(),
   component: Kasir,
+  errorComponent: ({ error }) => <div>Error in Kasir: {error.message}</div>,
 });
 
 interface CartItem {
@@ -31,9 +51,11 @@ interface CartItem {
 }
 
 function Kasir() {
+  const medicines = Route.useLoaderData();
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [method, setMethod] = useState("Tunai");
+  const [method, setMethod] = useState("Tunai"); // Keep state just to not break UI if it's used elsewhere in render
   const [paid, setPaid] = useState("");
 
   const inStock = useMemo(
@@ -76,17 +98,22 @@ function Kasir() {
   const paidNum = Number(paid) || 0;
   const change = paidNum - total;
 
-  const checkout = () => {
+  const checkout = async () => {
     if (cart.length === 0) return toast.error("Keranjang masih kosong");
-    if (method === "Tunai" && paidNum < total)
+    if (paidNum < total)
       return toast.error("Pembayaran kurang", {
         description: "Nominal bayar lebih kecil dari total.",
       });
+
+    await updateStock({ data: cart.map((i) => ({ id: i.id, qty: i.qty })) });
+
     toast.success("Transaksi berhasil", {
-      description: `Total ${formatRupiah(total)} dibayar via ${method}.`,
+      description: `Total ${formatRupiah(total)} dibayar via Tunai. Stok dikurangi.`,
     });
     setCart([]);
     setPaid("");
+    // Invalidate so loaders fetch new stock
+    router.invalidate();
   };
 
   return (
@@ -217,28 +244,26 @@ function Kasir() {
               <span>{formatRupiah(total)}</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <Select value={method} onValueChange={setMethod}>
-                <SelectTrigger className="rounded-xl">
-                  <Wallet className="h-4 w-4" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Tunai">Tunai</SelectItem>
-                  <SelectItem value="QRIS">QRIS</SelectItem>
-                  <SelectItem value="Kartu">Kartu</SelectItem>
-                </SelectContent>
-              </Select>
-              <Input
-                value={paid}
-                onChange={(e) => setPaid(e.target.value.replace(/\D/g, ""))}
-                placeholder="Nominal bayar"
-                inputMode="numeric"
-                className="rounded-xl"
-                disabled={method !== "Tunai"}
-              />
+            <div className="grid gap-2 pt-1">
+              <div className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border border-input bg-background px-3 py-2 text-sm font-medium">
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+                <span>Tunai</span>
+              </div>
+
+              <div className="relative">
+                <Input
+                  type="number"
+                  placeholder="Jumlah bayar (Rp)"
+                  value={paid}
+                  onChange={(e) => setPaid(e.target.value)}
+                  className="rounded-xl pl-8"
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-muted-foreground">
+                  Rp
+                </span>
+              </div>
             </div>
-            {method === "Tunai" && paidNum > 0 && (
+            {paidNum > 0 && (
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Kembalian</span>
                 <span

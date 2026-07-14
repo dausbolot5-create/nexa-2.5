@@ -17,10 +17,45 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatRupiah, medicines as seed, type Medicine } from "@/lib/mockData";
+import { formatRupiah, type Medicine } from "@/lib/mockData";
 import { medImage } from "@/lib/medImages";
+import { db } from "@/db";
+import { medicines as medicinesTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+import { useRouter } from "@tanstack/react-router";
+import { eq } from "drizzle-orm";
+import { MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const getMedicines = createServerFn({ method: "GET" }).handler(async () => {
+  return await db.select().from(medicinesTable);
+});
+
+const saveMedicine = createServerFn({ method: "POST" })
+  .validator((d: Record<string, unknown>) => d)
+  .handler(async ({ data }) => {
+    await db.insert(medicinesTable).values(data);
+  });
+
+const updateMedicine = createServerFn({ method: "POST" })
+  .validator((d: { id: string; data: Record<string, unknown> }) => d)
+  .handler(async ({ data: { id, data } }) => {
+    await db.update(medicinesTable).set(data).where(eq(medicinesTable.id, id));
+  });
+
+const deleteMedicineFn = createServerFn({ method: "POST" })
+  .validator((id: string) => id)
+  .handler(async ({ data: id }) => {
+    await db.delete(medicinesTable).where(eq(medicinesTable.id, id));
+  });
 
 export const Route = createFileRoute("/_authed/obat")({
+  loader: async () => await getMedicines(),
   component: ObatPage,
 });
 
@@ -31,9 +66,11 @@ function stockTone(m: Medicine) {
 }
 
 function ObatPage() {
-  const [data, setData] = useState<Medicine[]>(seed);
+  const loaderData = Route.useLoaderData();
+  const [data, setData] = useState<Medicine[]>(loaderData);
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
   const [form, setForm] = useState({ name: "", category: "", unit: "", price: "", stock: "" });
 
   const filtered = useMemo(
@@ -47,13 +84,25 @@ function ObatPage() {
     [data, q],
   );
 
-  const save = () => {
+  const router = useRouter();
+
+  const save = async () => {
     if (!form.name || !form.price) return toast.error("Nama & harga wajib diisi");
-    const n = data.length + 1;
-    setData((d) => [
-      {
-        id: `M${n}`,
-        code: `OBT-${String(n).padStart(4, "0")}`,
+
+    if (editId) {
+      const updateData = {
+        name: form.name,
+        category: form.category || "Lainnya",
+        unit: form.unit || "Tablet",
+        price: Number(form.price),
+        stock: Number(form.stock) || 0,
+      };
+      await updateMedicine({ id: editId, data: updateData });
+      toast.success("Obat berhasil diperbarui");
+    } else {
+      const newObat = {
+        id: crypto.randomUUID(),
+        code: `OBT-${Date.now().toString().slice(-4)}`,
         name: form.name,
         category: form.category || "Lainnya",
         unit: form.unit || "Tablet",
@@ -64,12 +113,35 @@ function ObatPage() {
         expiry: "2027-01-01",
         supplier: "PT Kimia Farma",
         location: "Rak A-1",
-      },
-      ...d,
-    ]);
+        manufacturer: "Generik",
+      };
+      await saveMedicine({ data: newObat });
+      toast.success("Obat ditambahkan ke database");
+    }
+
+    router.invalidate();
     setOpen(false);
+    setEditId(null);
     setForm({ name: "", category: "", unit: "", price: "", stock: "" });
-    toast.success("Obat ditambahkan");
+  };
+
+  const handleEdit = (m: Medicine) => {
+    setEditId(m.id);
+    setForm({
+      name: m.name,
+      category: m.category,
+      unit: m.unit,
+      price: m.price.toString(),
+      stock: m.stock.toString(),
+    });
+    setOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Hapus obat ini?")) return;
+    await deleteMedicineFn({ data: id });
+    toast.success("Obat dihapus");
+    router.invalidate();
   };
 
   return (
@@ -78,7 +150,14 @@ function ObatPage() {
         title="Data Obat"
         description="Kelola daftar obat, harga, dan ketersediaan stok."
         actions={
-          <Button onClick={() => setOpen(true)} className="rounded-xl">
+          <Button
+            onClick={() => {
+              setEditId(null);
+              setForm({ name: "", category: "", unit: "", price: "", stock: "" });
+              setOpen(true);
+            }}
+            className="rounded-xl"
+          >
             <Plus className="h-4 w-4" /> Tambah Obat
           </Button>
         }
@@ -89,7 +168,7 @@ function ObatPage() {
         onSearch={setQ}
         searchPlaceholder="Cari nama, kode, kategori…"
         count={filtered.length}
-        headers={["Kode", "Nama Obat", "Kategori", "Harga", "Stok", "Lokasi", "Kadaluarsa"]}
+        headers={["Kode", "Nama Obat", "Kategori", "Harga", "Stok", "Lokasi", "Kadaluarsa", "Aksi"]}
         empty={filtered.length === 0}
       >
         {filtered.map((m) => (
@@ -123,6 +202,26 @@ function ObatPage() {
                 year: "numeric",
               })}
             </TableCell>
+            <TableCell>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="glass">
+                  <DropdownMenuItem onClick={() => handleEdit(m)} className="cursor-pointer">
+                    <Edit className="mr-2 h-4 w-4" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => handleDelete(m.id)}
+                    className="cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
           </TableRow>
         ))}
       </TablePanel>
@@ -130,9 +229,11 @@ function ObatPage() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="glass rounded-2xl sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>Tambah Obat Baru</DialogTitle>
+            <DialogTitle>{editId ? "Edit Obat" : "Tambah Obat Baru"}</DialogTitle>
             <DialogDescription>
-              Lengkapi data obat untuk menambahkannya ke inventori.
+              {editId
+                ? "Perbarui informasi obat di bawah ini."
+                : "Lengkapi data obat untuk menambahkannya ke inventori."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">

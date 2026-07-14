@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { notifications as seed, type AppNotification } from "@/lib/mockData";
 
 export const Route = createFileRoute("/_authed/notifikasi")({
+  loader: async () => seed,
   component: NotifikasiPage,
 });
 
@@ -34,6 +35,7 @@ const toneByType = {
 } as const;
 
 function NotifikasiPage() {
+  const seed = Route.useLoaderData();
   const router = useRouter();
   const [items, setItems] = useState<AppNotification[]>(seed);
   const [openId, setOpenId] = useState<string | null>(null);
