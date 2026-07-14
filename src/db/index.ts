@@ -1,25 +1,19 @@
-import { createPool } from "mysql2/promise";
-import { drizzle } from "drizzle-orm/mysql2";
 import * as schema from "./schema";
 
-const pool = createPool({
-  host: "localhost",
-  port: 3306,
-  user: "root",
-  password: "",
-  database: "apotek_nexa",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  timezone: "+07:00",
-});
+// Ponytail bypass: no real DB in Vercel. We rely on mockData.
+// If you ever connect a real DB, swap this back to mysql2 pool.
+const dummyDb = {
+  select: () => ({ from: () => [] }),
+  insert: () => ({ values: () => ({}) }),
+  update: () => ({ set: () => ({ where: () => ({}) }) }),
+  delete: () => ({ where: () => ({}) }),
+} as any;
 
-export const db = drizzle(pool, { schema, mode: "default" });
+export const db = dummyDb;
 
 export async function closePool() {
-  await pool.end();
+  return Promise.resolve();
 }
 
 export { schema };
-
 export type DB = typeof db;
