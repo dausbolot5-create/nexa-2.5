@@ -48,7 +48,7 @@ const pieColors = [
 
 const quickActions = [
   { label: "Data Obat", href: "/obat" as const, icon: ClipboardList },
-  { label: "Resep", href: "/resep" as const, icon: FileText },
+  { label: "Pelanggan", href: "/pelanggan" as const, icon: FileText },
   { label: "Pembelian", href: "/pembelian" as const, icon: Plus },
   { label: "Peringatan Stok", href: "/stok-alert" as const, icon: ShieldAlert },
 ];

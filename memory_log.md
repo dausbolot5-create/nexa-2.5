@@ -79,3 +79,5 @@ Tujuan: Melacak perubahan file, tindakan agent, dan tugas pada proyek SIPOA Apot
 - `memory_log.md` - This persistent memory log
 - `AGENTS.md` - Project guidelines (Lovable integration)
 - `bug_report_temp.md` - Historical bug fixes
+
+## 2026-07-14\n- Restored real mysql2 connection pool in `src/db/index.ts` (removed dummyDb bypass)\n

@@ -67,16 +67,6 @@ function PortalPelangganDashboard() {
                 <Plus className="mr-2 h-4 w-4" /> Pesan Obat
               </Link>
             </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-white/30 bg-white/10 text-primary-foreground hover:bg-white/20 hover:text-primary-foreground h-9 px-4"
-              asChild
-            >
-              <Link to="/portal-pelanggan/resep">
-                <FileText className="mr-2 h-4 w-4" /> Unggah Resep
-              </Link>
-            </Button>
           </div>
         </div>
       </div>

@@ -49,13 +49,7 @@ export const navItems: NavItem[] = [
     roles: ["pelanggan"],
     group: "Portal",
   },
-  {
-    to: "/portal-pelanggan/resep",
-    label: "Resep Digital",
-    icon: FileText,
-    roles: ["pelanggan"],
-    group: "Portal",
-  },
+
   {
     to: "/portal-pelanggan/obat",
     label: "Obat Rutin",
@@ -105,20 +99,7 @@ export const navItems: NavItem[] = [
     roles: ["admin", "apoteker", "kasir"],
     group: "Manajemen",
   },
-  {
-    to: "/analitik-pelanggan",
-    label: "Analitik Pelanggan",
-    icon: BarChart3,
-    roles: ["admin", "kasir"],
-    group: "Manajemen",
-  },
-  {
-    to: "/resep",
-    label: "Resep",
-    icon: FileText,
-    roles: ["admin", "apoteker"],
-    group: "Manajemen",
-  },
+
   {
     to: "/pembelian",
     label: "Pembelian",

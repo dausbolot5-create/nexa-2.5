@@ -16,7 +16,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedSupplierRouteImport } from './routes/_authed.supplier'
 import { Route as AuthedStokOpnameRouteImport } from './routes/_authed.stok-opname'
 import { Route as AuthedStokAlertRouteImport } from './routes/_authed.stok-alert'
-import { Route as AuthedResepRouteImport } from './routes/_authed.resep'
 import { Route as AuthedPenggunaRouteImport } from './routes/_authed.pengguna'
 import { Route as AuthedPengaturanRouteImport } from './routes/_authed.pengaturan'
 import { Route as AuthedPembelianRouteImport } from './routes/_authed.pembelian'
@@ -27,9 +26,7 @@ import { Route as AuthedLaporanRouteImport } from './routes/_authed.laporan'
 import { Route as AuthedKasirRouteImport } from './routes/_authed.kasir'
 import { Route as AuthedInventoriRouteImport } from './routes/_authed.inventori'
 import { Route as AuthedDashboardRouteImport } from './routes/_authed.dashboard'
-import { Route as AuthedAnalitikPelangganRouteImport } from './routes/_authed.analitik-pelanggan'
 import { Route as AuthedPortalPelangganIndexRouteImport } from './routes/_authed.portal-pelanggan.index'
-import { Route as AuthedPortalPelangganResepRouteImport } from './routes/_authed.portal-pelanggan.resep'
 import { Route as AuthedPortalPelangganProfilRouteImport } from './routes/_authed.portal-pelanggan.profil'
 import { Route as AuthedPortalPelangganPesananRouteImport } from './routes/_authed.portal-pelanggan.pesanan'
 import { Route as AuthedPortalPelangganObatRouteImport } from './routes/_authed.portal-pelanggan.obat'
@@ -67,11 +64,6 @@ const AuthedStokOpnameRoute = AuthedStokOpnameRouteImport.update({
 const AuthedStokAlertRoute = AuthedStokAlertRouteImport.update({
   id: '/stok-alert',
   path: '/stok-alert',
-  getParentRoute: () => AuthedRoute,
-} as any)
-const AuthedResepRoute = AuthedResepRouteImport.update({
-  id: '/resep',
-  path: '/resep',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedPenggunaRoute = AuthedPenggunaRouteImport.update({
@@ -124,21 +116,10 @@ const AuthedDashboardRoute = AuthedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthedRoute,
 } as any)
-const AuthedAnalitikPelangganRoute = AuthedAnalitikPelangganRouteImport.update({
-  id: '/analitik-pelanggan',
-  path: '/analitik-pelanggan',
-  getParentRoute: () => AuthedRoute,
-} as any)
 const AuthedPortalPelangganIndexRoute =
   AuthedPortalPelangganIndexRouteImport.update({
     id: '/portal-pelanggan/',
     path: '/portal-pelanggan/',
-    getParentRoute: () => AuthedRoute,
-  } as any)
-const AuthedPortalPelangganResepRoute =
-  AuthedPortalPelangganResepRouteImport.update({
-    id: '/portal-pelanggan/resep',
-    path: '/portal-pelanggan/resep',
     getParentRoute: () => AuthedRoute,
   } as any)
 const AuthedPortalPelangganProfilRoute =
@@ -170,7 +151,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/analitik-pelanggan': typeof AuthedAnalitikPelangganRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/inventori': typeof AuthedInventoriRoute
   '/kasir': typeof AuthedKasirRoute
@@ -181,7 +161,6 @@ export interface FileRoutesByFullPath {
   '/pembelian': typeof AuthedPembelianRoute
   '/pengaturan': typeof AuthedPengaturanRoute
   '/pengguna': typeof AuthedPenggunaRoute
-  '/resep': typeof AuthedResepRoute
   '/stok-alert': typeof AuthedStokAlertRoute
   '/stok-opname': typeof AuthedStokOpnameRoute
   '/supplier': typeof AuthedSupplierRoute
@@ -189,14 +168,12 @@ export interface FileRoutesByFullPath {
   '/portal-pelanggan/obat': typeof AuthedPortalPelangganObatRoute
   '/portal-pelanggan/pesanan': typeof AuthedPortalPelangganPesananRoute
   '/portal-pelanggan/profil': typeof AuthedPortalPelangganProfilRoute
-  '/portal-pelanggan/resep': typeof AuthedPortalPelangganResepRoute
   '/portal-pelanggan/': typeof AuthedPortalPelangganIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/analitik-pelanggan': typeof AuthedAnalitikPelangganRoute
   '/dashboard': typeof AuthedDashboardRoute
   '/inventori': typeof AuthedInventoriRoute
   '/kasir': typeof AuthedKasirRoute
@@ -207,7 +184,6 @@ export interface FileRoutesByTo {
   '/pembelian': typeof AuthedPembelianRoute
   '/pengaturan': typeof AuthedPengaturanRoute
   '/pengguna': typeof AuthedPenggunaRoute
-  '/resep': typeof AuthedResepRoute
   '/stok-alert': typeof AuthedStokAlertRoute
   '/stok-opname': typeof AuthedStokOpnameRoute
   '/supplier': typeof AuthedSupplierRoute
@@ -215,7 +191,6 @@ export interface FileRoutesByTo {
   '/portal-pelanggan/obat': typeof AuthedPortalPelangganObatRoute
   '/portal-pelanggan/pesanan': typeof AuthedPortalPelangganPesananRoute
   '/portal-pelanggan/profil': typeof AuthedPortalPelangganProfilRoute
-  '/portal-pelanggan/resep': typeof AuthedPortalPelangganResepRoute
   '/portal-pelanggan': typeof AuthedPortalPelangganIndexRoute
 }
 export interface FileRoutesById {
@@ -224,7 +199,6 @@ export interface FileRoutesById {
   '/_authed': typeof AuthedRouteWithChildren
   '/login': typeof LoginRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authed/analitik-pelanggan': typeof AuthedAnalitikPelangganRoute
   '/_authed/dashboard': typeof AuthedDashboardRoute
   '/_authed/inventori': typeof AuthedInventoriRoute
   '/_authed/kasir': typeof AuthedKasirRoute
@@ -235,7 +209,6 @@ export interface FileRoutesById {
   '/_authed/pembelian': typeof AuthedPembelianRoute
   '/_authed/pengaturan': typeof AuthedPengaturanRoute
   '/_authed/pengguna': typeof AuthedPenggunaRoute
-  '/_authed/resep': typeof AuthedResepRoute
   '/_authed/stok-alert': typeof AuthedStokAlertRoute
   '/_authed/stok-opname': typeof AuthedStokOpnameRoute
   '/_authed/supplier': typeof AuthedSupplierRoute
@@ -243,7 +216,6 @@ export interface FileRoutesById {
   '/_authed/portal-pelanggan/obat': typeof AuthedPortalPelangganObatRoute
   '/_authed/portal-pelanggan/pesanan': typeof AuthedPortalPelangganPesananRoute
   '/_authed/portal-pelanggan/profil': typeof AuthedPortalPelangganProfilRoute
-  '/_authed/portal-pelanggan/resep': typeof AuthedPortalPelangganResepRoute
   '/_authed/portal-pelanggan/': typeof AuthedPortalPelangganIndexRoute
 }
 export interface FileRouteTypes {
@@ -252,7 +224,6 @@ export interface FileRouteTypes {
     | '/'
     | '/login'
     | '/sitemap.xml'
-    | '/analitik-pelanggan'
     | '/dashboard'
     | '/inventori'
     | '/kasir'
@@ -263,7 +234,6 @@ export interface FileRouteTypes {
     | '/pembelian'
     | '/pengaturan'
     | '/pengguna'
-    | '/resep'
     | '/stok-alert'
     | '/stok-opname'
     | '/supplier'
@@ -271,14 +241,12 @@ export interface FileRouteTypes {
     | '/portal-pelanggan/obat'
     | '/portal-pelanggan/pesanan'
     | '/portal-pelanggan/profil'
-    | '/portal-pelanggan/resep'
     | '/portal-pelanggan/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/login'
     | '/sitemap.xml'
-    | '/analitik-pelanggan'
     | '/dashboard'
     | '/inventori'
     | '/kasir'
@@ -289,7 +257,6 @@ export interface FileRouteTypes {
     | '/pembelian'
     | '/pengaturan'
     | '/pengguna'
-    | '/resep'
     | '/stok-alert'
     | '/stok-opname'
     | '/supplier'
@@ -297,7 +264,6 @@ export interface FileRouteTypes {
     | '/portal-pelanggan/obat'
     | '/portal-pelanggan/pesanan'
     | '/portal-pelanggan/profil'
-    | '/portal-pelanggan/resep'
     | '/portal-pelanggan'
   id:
     | '__root__'
@@ -305,7 +271,6 @@ export interface FileRouteTypes {
     | '/_authed'
     | '/login'
     | '/sitemap.xml'
-    | '/_authed/analitik-pelanggan'
     | '/_authed/dashboard'
     | '/_authed/inventori'
     | '/_authed/kasir'
@@ -316,7 +281,6 @@ export interface FileRouteTypes {
     | '/_authed/pembelian'
     | '/_authed/pengaturan'
     | '/_authed/pengguna'
-    | '/_authed/resep'
     | '/_authed/stok-alert'
     | '/_authed/stok-opname'
     | '/_authed/supplier'
@@ -324,7 +288,6 @@ export interface FileRouteTypes {
     | '/_authed/portal-pelanggan/obat'
     | '/_authed/portal-pelanggan/pesanan'
     | '/_authed/portal-pelanggan/profil'
-    | '/_authed/portal-pelanggan/resep'
     | '/_authed/portal-pelanggan/'
   fileRoutesById: FileRoutesById
 }
@@ -384,13 +347,6 @@ declare module '@tanstack/react-router' {
       path: '/stok-alert'
       fullPath: '/stok-alert'
       preLoaderRoute: typeof AuthedStokAlertRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/resep': {
-      id: '/_authed/resep'
-      path: '/resep'
-      fullPath: '/resep'
-      preLoaderRoute: typeof AuthedResepRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/pengguna': {
@@ -463,25 +419,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthedDashboardRouteImport
       parentRoute: typeof AuthedRoute
     }
-    '/_authed/analitik-pelanggan': {
-      id: '/_authed/analitik-pelanggan'
-      path: '/analitik-pelanggan'
-      fullPath: '/analitik-pelanggan'
-      preLoaderRoute: typeof AuthedAnalitikPelangganRouteImport
-      parentRoute: typeof AuthedRoute
-    }
     '/_authed/portal-pelanggan/': {
       id: '/_authed/portal-pelanggan/'
       path: '/portal-pelanggan'
       fullPath: '/portal-pelanggan/'
       preLoaderRoute: typeof AuthedPortalPelangganIndexRouteImport
-      parentRoute: typeof AuthedRoute
-    }
-    '/_authed/portal-pelanggan/resep': {
-      id: '/_authed/portal-pelanggan/resep'
-      path: '/portal-pelanggan/resep'
-      fullPath: '/portal-pelanggan/resep'
-      preLoaderRoute: typeof AuthedPortalPelangganResepRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/portal-pelanggan/profil': {
@@ -516,7 +458,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthedRouteChildren {
-  AuthedAnalitikPelangganRoute: typeof AuthedAnalitikPelangganRoute
   AuthedDashboardRoute: typeof AuthedDashboardRoute
   AuthedInventoriRoute: typeof AuthedInventoriRoute
   AuthedKasirRoute: typeof AuthedKasirRoute
@@ -527,7 +468,6 @@ interface AuthedRouteChildren {
   AuthedPembelianRoute: typeof AuthedPembelianRoute
   AuthedPengaturanRoute: typeof AuthedPengaturanRoute
   AuthedPenggunaRoute: typeof AuthedPenggunaRoute
-  AuthedResepRoute: typeof AuthedResepRoute
   AuthedStokAlertRoute: typeof AuthedStokAlertRoute
   AuthedStokOpnameRoute: typeof AuthedStokOpnameRoute
   AuthedSupplierRoute: typeof AuthedSupplierRoute
@@ -535,12 +475,10 @@ interface AuthedRouteChildren {
   AuthedPortalPelangganObatRoute: typeof AuthedPortalPelangganObatRoute
   AuthedPortalPelangganPesananRoute: typeof AuthedPortalPelangganPesananRoute
   AuthedPortalPelangganProfilRoute: typeof AuthedPortalPelangganProfilRoute
-  AuthedPortalPelangganResepRoute: typeof AuthedPortalPelangganResepRoute
   AuthedPortalPelangganIndexRoute: typeof AuthedPortalPelangganIndexRoute
 }
 
 const AuthedRouteChildren: AuthedRouteChildren = {
-  AuthedAnalitikPelangganRoute: AuthedAnalitikPelangganRoute,
   AuthedDashboardRoute: AuthedDashboardRoute,
   AuthedInventoriRoute: AuthedInventoriRoute,
   AuthedKasirRoute: AuthedKasirRoute,
@@ -551,7 +489,6 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedPembelianRoute: AuthedPembelianRoute,
   AuthedPengaturanRoute: AuthedPengaturanRoute,
   AuthedPenggunaRoute: AuthedPenggunaRoute,
-  AuthedResepRoute: AuthedResepRoute,
   AuthedStokAlertRoute: AuthedStokAlertRoute,
   AuthedStokOpnameRoute: AuthedStokOpnameRoute,
   AuthedSupplierRoute: AuthedSupplierRoute,
@@ -559,7 +496,6 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedPortalPelangganObatRoute: AuthedPortalPelangganObatRoute,
   AuthedPortalPelangganPesananRoute: AuthedPortalPelangganPesananRoute,
   AuthedPortalPelangganProfilRoute: AuthedPortalPelangganProfilRoute,
-  AuthedPortalPelangganResepRoute: AuthedPortalPelangganResepRoute,
   AuthedPortalPelangganIndexRoute: AuthedPortalPelangganIndexRoute,
 }
 
