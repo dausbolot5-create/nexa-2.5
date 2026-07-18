@@ -1,5 +1,10 @@
 # SIPOA — Sistem Informasi Penjualan Obat Apotek
 
+> **Tugas PBL SI Apotek — Kelompok 11**
+>
+> - Mufid Rosidi (202511420044)
+> - Muhammad Fahmi Amrulloh (202511420045)
+
 Aplikasi manajemen apotek berbasis web untuk mengelola penjualan, inventori, pembelian, supplier, dan pengguna.
 
 ## Tech Stack
