@@ -6,33 +6,80 @@ import { PageHeader } from "@/components/PageHeader";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ReceiptDialog, type ReceiptData } from "@/components/ReceiptDialog";
 import { formatRupiah } from "@/lib/mockData";
 import { medImage } from "@/lib/medImages";
 import { db } from "@/db";
-import { medicines as medicinesTable } from "@/db/schema";
+import {
+  medicines as medicinesTable,
+  sales as salesTable,
+  saleItems as saleItemsTable,
+} from "@/db/schema";
 import { createServerFn } from "@tanstack/react-start";
 import { sql } from "drizzle-orm";
 import { useRouter } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
 
 const getMedicines = createServerFn({ method: "GET" }).handler(async () => {
   return await db.select().from(medicinesTable);
 });
 
-const updateStock = createServerFn({ method: "POST" })
-  .validator((items: { id: string; qty: number }[]) => items)
+const saveSale = createServerFn({ method: "POST" })
+  .validator(
+    (d: {
+      cashierId: string;
+      cashierName: string;
+      items: { id: string; name: string; qty: number; price: number; unit: string }[];
+      subtotal: number;
+      tax: number;
+      total: number;
+      paid: number;
+      method: string;
+    }) => d,
+  )
   .handler(async ({ data }) => {
-    // Loop is fine for small carts, ponytail: O(n) queries instead of batch update. Add batch when cart size > 50.
-    for (const item of data) {
+    const now = new Date();
+    const code = `INV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}${String(now.getSeconds()).padStart(2, "0")}`;
+    const saleId = `S-${Date.now()}`;
+    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    // Insert sale record
+    await db.insert(salesTable).values({
+      id: saleId,
+      code,
+      date: dateStr,
+      cashierId: data.cashierId,
+      customerId: null,
+      itemsCount: data.items.length,
+      total: data.total,
+      method: data.method,
+    });
+
+    // Insert sale items + decrement stock
+    for (const item of data.items) {
+      await db.insert(saleItemsTable).values({
+        id: `SI-${Date.now()}-${item.id}`,
+        saleId,
+        medicineId: item.id,
+        qty: item.qty,
+        price: item.price,
+        subtotal: item.qty * item.price,
+      });
       await db.execute(sql`UPDATE medicines SET stock = stock - ${item.qty} WHERE id = ${item.id}`);
     }
+
+    return {
+      code,
+      date: now.toLocaleDateString("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      cashier: data.cashierName,
+    };
   });
 
 export const Route = createFileRoute("/_authed/kasir")({
@@ -53,17 +100,20 @@ interface CartItem {
 function Kasir() {
   const medicines = Route.useLoaderData();
   const router = useRouter();
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [method, setMethod] = useState("Tunai"); // Keep state just to not break UI if it's used elsewhere in render
   const [paid, setPaid] = useState("");
+  const [receipt, setReceipt] = useState<ReceiptData | null>(null);
+  const [receiptOpen, setReceiptOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const inStock = useMemo(
     () =>
       medicines
         .filter((m) => m.stock > 0)
         .filter((m) => (m.name || "").toLowerCase().includes(query.toLowerCase())),
-    [query],
+    [query, medicines],
   );
 
   const add = (m: (typeof medicines)[number]) => {
@@ -105,15 +155,59 @@ function Kasir() {
         description: "Nominal bayar lebih kecil dari total.",
       });
 
-    await updateStock({ data: cart.map((i) => ({ id: i.id, qty: i.qty })) });
+    setSubmitting(true);
+    try {
+      const result = await saveSale({
+        data: {
+          cashierId: user?.id || "U03",
+          cashierName: user?.name || "Kasir",
+          items: cart.map((i) => ({
+            id: i.id,
+            name: i.name,
+            qty: i.qty,
+            price: i.price,
+            unit: i.unit,
+          })),
+          subtotal,
+          tax,
+          total,
+          paid: paidNum,
+          method: "Tunai",
+        },
+      });
 
-    toast.success("Transaksi berhasil", {
-      description: `Total ${formatRupiah(total)} dibayar via Tunai. Stok dikurangi.`,
-    });
-    setCart([]);
-    setPaid("");
-    // Invalidate so loaders fetch new stock
-    router.invalidate();
+      setReceipt({
+        code: result.code,
+        date: result.date,
+        cashier: result.cashier,
+        items: cart.map((i) => ({
+          name: i.name,
+          qty: i.qty,
+          price: i.price,
+          unit: i.unit,
+        })),
+        subtotal,
+        tax,
+        total,
+        paid: paidNum,
+        change: Math.max(0, change),
+        method: "Tunai",
+      });
+      setReceiptOpen(true);
+
+      toast.success("Transaksi berhasil", {
+        description: `Total ${formatRupiah(total)} — Struk ${result.code}`,
+      });
+
+      setCart([]);
+      setPaid("");
+      router.invalidate();
+    } catch (err) {
+      toast.error("Gagal menyimpan transaksi");
+      console.error(err);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -276,12 +370,18 @@ function Kasir() {
               </div>
             )}
 
-            <Button onClick={checkout} className="h-11 w-full rounded-xl text-base font-semibold">
-              <Receipt className="h-4 w-4" /> Bayar Sekarang
+            <Button
+              onClick={checkout}
+              disabled={submitting}
+              className="h-11 w-full rounded-xl text-base font-semibold"
+            >
+              <Receipt className="h-4 w-4" /> {submitting ? "Memproses…" : "Bayar Sekarang"}
             </Button>
           </div>
         </div>
       </div>
+
+      <ReceiptDialog open={receiptOpen} onOpenChange={setReceiptOpen} data={receipt} />
     </>
   );
 }

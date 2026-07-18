@@ -79,6 +79,13 @@ export const navItems: NavItem[] = [
     group: "Utama",
   },
   {
+    to: "/riwayat",
+    label: "Riwayat",
+    icon: FileText,
+    roles: ["admin", "apoteker", "kasir"],
+    group: "Utama",
+  },
+  {
     to: "/obat",
     label: "Data Obat",
     icon: Pill,

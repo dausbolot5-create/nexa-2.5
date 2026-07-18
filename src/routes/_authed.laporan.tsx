@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Download, TrendingUp, ShoppingBag, Percent, Wallet } from "lucide-react";
-import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -17,9 +16,21 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { monthlyRevenue, salesTrend, formatRupiah } from "@/lib/mockData";
+import { formatRupiah } from "@/lib/mockData";
+import { db } from "@/db";
+import { sales as salesTable, purchases as purchasesTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+
+const getLaporanData = createServerFn({ method: "GET" }).handler(async () => {
+  const [sales, purchases] = await Promise.all([
+    db.select().from(salesTable),
+    db.select().from(purchasesTable),
+  ]);
+  return { sales, purchases };
+});
 
 export const Route = createFileRoute("/_authed/laporan")({
+  loader: async () => await getLaporanData(),
   component: LaporanPage,
 });
 
@@ -30,9 +41,48 @@ const chartTooltip = {
 } as const;
 
 function LaporanPage() {
-  const revenue = monthlyRevenue.reduce((s, m) => s + m.pendapatan, 0);
-  const spend = monthlyRevenue.reduce((s, m) => s + m.pembelian, 0);
+  const { sales, purchases } = Route.useLoaderData();
+
+  const revenue = sales.reduce((s, t) => s + t.total, 0);
+  const spend = purchases.reduce((s, p) => s + p.total, 0);
   const profit = revenue - spend;
+
+  // Group sales by month for chart
+  const monthlyMap: Record<string, { pendapatan: number; pembelian: number }> = {};
+  for (const s of sales) {
+    const m = new Date(s.date).toLocaleDateString("id-ID", { month: "short", year: "numeric" });
+    if (!monthlyMap[m]) monthlyMap[m] = { pendapatan: 0, pembelian: 0 };
+    monthlyMap[m].pendapatan += s.total;
+  }
+  for (const p of purchases) {
+    const m = new Date(p.date).toLocaleDateString("id-ID", { month: "short", year: "numeric" });
+    if (!monthlyMap[m]) monthlyMap[m] = { pendapatan: 0, pembelian: 0 };
+    monthlyMap[m].pembelian += p.total;
+  }
+  const monthlyRevenue = Object.entries(monthlyMap).map(([month, v]) => ({ month, ...v }));
+
+  // Group sales by day-of-week for daily chart
+  const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+  const dailyMap: Record<string, number> = {};
+  for (const s of sales) {
+    const day = dayNames[new Date(s.date).getDay()];
+    dailyMap[day] = (dailyMap[day] || 0) + s.total;
+  }
+  const salesTrend = dayNames.map((day) => ({ day, penjualan: dailyMap[day] || 0 }));
+
+  const exportCSV = () => {
+    const header = "Kode,Tanggal,Jumlah Item,Total,Metode\n";
+    const rows = sales
+      .map((s) => `${s.code},${s.date},${s.itemsCount},${s.total},${s.method}`)
+      .join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `laporan-penjualan-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <>
@@ -40,25 +90,21 @@ function LaporanPage() {
         title="Laporan"
         description="Analisis performa penjualan dan keuangan apotek."
         actions={
-          <Button
-            variant="outline"
-            className="rounded-xl"
-            onClick={() => toast.success("Laporan diekspor (demo)")}
-          >
-            <Download className="h-4 w-4" /> Ekspor
+          <Button variant="outline" className="rounded-xl" onClick={exportCSV}>
+            <Download className="h-4 w-4" /> Ekspor CSV
           </Button>
         }
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <StatCard
-          label="Pendapatan (6 bln)"
+          label="Total Pendapatan"
           value={formatRupiah(revenue)}
           icon={TrendingUp}
           tone="success"
         />
         <StatCard
-          label="Pembelian (6 bln)"
+          label="Total Pembelian"
           value={formatRupiah(spend)}
           icon={ShoppingBag}
           tone="info"
@@ -66,7 +112,7 @@ function LaporanPage() {
         <StatCard label="Laba Kotor" value={formatRupiah(profit)} icon={Wallet} tone="primary" />
         <StatCard
           label="Margin"
-          value={`${Math.round((profit / revenue) * 100)}%`}
+          value={revenue > 0 ? `${Math.round((profit / revenue) * 100)}%` : "0%"}
           icon={Percent}
           tone="warning"
         />
@@ -85,41 +131,47 @@ function LaporanPage() {
         <TabsContent value="bulanan">
           <div className="glass rounded-2xl p-5">
             <h3 className="mb-4 text-base font-bold text-foreground">Pendapatan vs Pembelian</h3>
-            <ResponsiveContainer width="100%" height={320}>
-              <BarChart data={monthlyRevenue} margin={{ left: -8, right: 8 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={12}
-                  stroke="var(--muted-foreground)"
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  fontSize={11}
-                  stroke="var(--muted-foreground)"
-                  tickFormatter={(v) => `${v / 1000000}jt`}
-                />
-                <Tooltip formatter={(v: number) => formatRupiah(v)} contentStyle={chartTooltip} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar
-                  dataKey="pendapatan"
-                  name="Pendapatan"
-                  fill="var(--chart-1)"
-                  radius={[6, 6, 0, 0]}
-                  isAnimationActive={false}
-                />
-                <Bar
-                  dataKey="pembelian"
-                  name="Pembelian"
-                  fill="var(--chart-3)"
-                  radius={[6, 6, 0, 0]}
-                  isAnimationActive={false}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {monthlyRevenue.length === 0 ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">
+                Belum ada data transaksi.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={monthlyRevenue} margin={{ left: -8, right: 8 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={12}
+                    stroke="var(--muted-foreground)"
+                  />
+                  <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    fontSize={11}
+                    stroke="var(--muted-foreground)"
+                    tickFormatter={(v) => `${v / 1000000}jt`}
+                  />
+                  <Tooltip formatter={(v: number) => formatRupiah(v)} contentStyle={chartTooltip} />
+                  <Legend wrapperStyle={{ fontSize: 12 }} />
+                  <Bar
+                    dataKey="pendapatan"
+                    name="Pendapatan"
+                    fill="var(--chart-1)"
+                    radius={[6, 6, 0, 0]}
+                    isAnimationActive={false}
+                  />
+                  <Bar
+                    dataKey="pembelian"
+                    name="Pembelian"
+                    fill="var(--chart-3)"
+                    radius={[6, 6, 0, 0]}
+                    isAnimationActive={false}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </TabsContent>
 

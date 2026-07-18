@@ -4,6 +4,33 @@ Tujuan: Melacak perubahan file, tindakan agent, dan tugas pada proyek SIPOA Apot
 
 ## Perubahan Terakhir
 
+### 2026-07-17: NewFitur.md — 4 Fitur Besar
+
+**1. Cetak Struk (Kasir POS)**
+
+- File baru: `src/components/ReceiptDialog.tsx` — dialog struk pembayaran + print via window.open
+- File diubah: `src/routes/_authed.kasir.tsx` — checkout sekarang menyimpan sale + sale_items ke DB, menampilkan struk otomatis, tombol cetak struk
+
+**2. Halaman Riwayat**
+
+- File diubah: `src/routes/_authed.riwayat.tsx` — menghapus tab resep karena tidak lagi digunakan.
+- File diubah: `src/routes/_authed.dashboard.tsx` — memperbaiki crash Recharts PieChart (menambahkan empty state jika categorySales 0).
+- File diubah: `src/routes/_authed.dashboard.tsx`, `src/routes/_authed.riwayat.tsx`, `src/routes/_authed.inventori.tsx` — menambahkan fallback `mockData` pada SSR data loader (`createServerFn`) agar halaman tidak crash dengan pesan "This page didn't load" saat koneksi MySQL gagal / saat bypass.
+- File diubah: `src/lib/nav.ts` — menambah menu "Riwayat" di navigasi (group Utama, roles admin/apoteker/kasir)
+
+**3. Menjalankan Semua Sistem Demo → Real DB**
+
+- `src/routes/_authed.supplier.tsx` — data dari DB, tombol "Tambah Pemasok" → dialog form → insert ke DB
+- `src/routes/_authed.pengguna.tsx` — data dari DB, tombol "Tambah Pengguna" → dialog form → insert ke DB, toggle aktif → update DB
+- `src/routes/_authed.pembelian.tsx` — data dari DB + supplier list, tombol "Buat Pesanan" → dialog form → insert ke DB
+- `src/routes/_authed.laporan.tsx` — data chart dari real sales/purchases DB, tombol "Ekspor" → download CSV nyata
+- `src/routes/_authed.dashboard.tsx` — semua KPI, chart, transaksi terbaru dari DB (bukan mockData)
+
+**4. Build & Lint**
+
+- Build: ✅ sukses (0 errors)
+- Lint: ✅ 0 errors (7 warnings pre-existing, bukan dari perubahan ini)
+
 ### 2026-07-10 (17:52 - 17:57): Portal Pelanggan - Menambahkan 3 Halaman Baru
 
 **Fitur Baru:**

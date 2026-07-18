@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthedSupplierRouteImport } from './routes/_authed.supplier'
 import { Route as AuthedStokOpnameRouteImport } from './routes/_authed.stok-opname'
 import { Route as AuthedStokAlertRouteImport } from './routes/_authed.stok-alert'
+import { Route as AuthedRiwayatRouteImport } from './routes/_authed.riwayat'
 import { Route as AuthedPenggunaRouteImport } from './routes/_authed.pengguna'
 import { Route as AuthedPengaturanRouteImport } from './routes/_authed.pengaturan'
 import { Route as AuthedPembelianRouteImport } from './routes/_authed.pembelian'
@@ -64,6 +65,11 @@ const AuthedStokOpnameRoute = AuthedStokOpnameRouteImport.update({
 const AuthedStokAlertRoute = AuthedStokAlertRouteImport.update({
   id: '/stok-alert',
   path: '/stok-alert',
+  getParentRoute: () => AuthedRoute,
+} as any)
+const AuthedRiwayatRoute = AuthedRiwayatRouteImport.update({
+  id: '/riwayat',
+  path: '/riwayat',
   getParentRoute: () => AuthedRoute,
 } as any)
 const AuthedPenggunaRoute = AuthedPenggunaRouteImport.update({
@@ -161,6 +167,7 @@ export interface FileRoutesByFullPath {
   '/pembelian': typeof AuthedPembelianRoute
   '/pengaturan': typeof AuthedPengaturanRoute
   '/pengguna': typeof AuthedPenggunaRoute
+  '/riwayat': typeof AuthedRiwayatRoute
   '/stok-alert': typeof AuthedStokAlertRoute
   '/stok-opname': typeof AuthedStokOpnameRoute
   '/supplier': typeof AuthedSupplierRoute
@@ -184,6 +191,7 @@ export interface FileRoutesByTo {
   '/pembelian': typeof AuthedPembelianRoute
   '/pengaturan': typeof AuthedPengaturanRoute
   '/pengguna': typeof AuthedPenggunaRoute
+  '/riwayat': typeof AuthedRiwayatRoute
   '/stok-alert': typeof AuthedStokAlertRoute
   '/stok-opname': typeof AuthedStokOpnameRoute
   '/supplier': typeof AuthedSupplierRoute
@@ -209,6 +217,7 @@ export interface FileRoutesById {
   '/_authed/pembelian': typeof AuthedPembelianRoute
   '/_authed/pengaturan': typeof AuthedPengaturanRoute
   '/_authed/pengguna': typeof AuthedPenggunaRoute
+  '/_authed/riwayat': typeof AuthedRiwayatRoute
   '/_authed/stok-alert': typeof AuthedStokAlertRoute
   '/_authed/stok-opname': typeof AuthedStokOpnameRoute
   '/_authed/supplier': typeof AuthedSupplierRoute
@@ -234,6 +243,7 @@ export interface FileRouteTypes {
     | '/pembelian'
     | '/pengaturan'
     | '/pengguna'
+    | '/riwayat'
     | '/stok-alert'
     | '/stok-opname'
     | '/supplier'
@@ -257,6 +267,7 @@ export interface FileRouteTypes {
     | '/pembelian'
     | '/pengaturan'
     | '/pengguna'
+    | '/riwayat'
     | '/stok-alert'
     | '/stok-opname'
     | '/supplier'
@@ -281,6 +292,7 @@ export interface FileRouteTypes {
     | '/_authed/pembelian'
     | '/_authed/pengaturan'
     | '/_authed/pengguna'
+    | '/_authed/riwayat'
     | '/_authed/stok-alert'
     | '/_authed/stok-opname'
     | '/_authed/supplier'
@@ -347,6 +359,13 @@ declare module '@tanstack/react-router' {
       path: '/stok-alert'
       fullPath: '/stok-alert'
       preLoaderRoute: typeof AuthedStokAlertRouteImport
+      parentRoute: typeof AuthedRoute
+    }
+    '/_authed/riwayat': {
+      id: '/_authed/riwayat'
+      path: '/riwayat'
+      fullPath: '/riwayat'
+      preLoaderRoute: typeof AuthedRiwayatRouteImport
       parentRoute: typeof AuthedRoute
     }
     '/_authed/pengguna': {
@@ -468,6 +487,7 @@ interface AuthedRouteChildren {
   AuthedPembelianRoute: typeof AuthedPembelianRoute
   AuthedPengaturanRoute: typeof AuthedPengaturanRoute
   AuthedPenggunaRoute: typeof AuthedPenggunaRoute
+  AuthedRiwayatRoute: typeof AuthedRiwayatRoute
   AuthedStokAlertRoute: typeof AuthedStokAlertRoute
   AuthedStokOpnameRoute: typeof AuthedStokOpnameRoute
   AuthedSupplierRoute: typeof AuthedSupplierRoute
@@ -489,6 +509,7 @@ const AuthedRouteChildren: AuthedRouteChildren = {
   AuthedPembelianRoute: AuthedPembelianRoute,
   AuthedPengaturanRoute: AuthedPengaturanRoute,
   AuthedPenggunaRoute: AuthedPenggunaRoute,
+  AuthedRiwayatRoute: AuthedRiwayatRoute,
   AuthedStokAlertRoute: AuthedStokAlertRoute,
   AuthedStokOpnameRoute: AuthedStokOpnameRoute,
   AuthedSupplierRoute: AuthedSupplierRoute,

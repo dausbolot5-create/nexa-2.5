@@ -15,8 +15,6 @@ import {
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   Cell,
   Pie,
@@ -31,11 +29,42 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { PageHeader } from "@/components/PageHeader";
 import { ScrollReveal } from "@/components/animations";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { formatRupiah, medicines, sales, salesTrend, categorySales } from "@/lib/mockData";
+import { formatRupiah } from "@/lib/mockData";
 import { useAuth } from "@/lib/auth";
+import { db } from "@/db";
+import { medicines as medicinesTable, sales as salesTable } from "@/db/schema";
+import { createServerFn } from "@tanstack/react-start";
+import { desc } from "drizzle-orm";
+
+import { medicines as mockMedicines, sales as mockSales } from "@/lib/mockData";
+
+const getDashboardData = createServerFn({ method: "GET" }).handler(async () => {
+  try {
+    const [medicines, sales] = await Promise.all([
+      db.select().from(medicinesTable),
+      db.select().from(salesTable).orderBy(desc(salesTable.createdAt)),
+    ]);
+    return { medicines, sales };
+  } catch (error) {
+    console.error("Dashboard DB Loader Error, falling back to mockData:", error);
+    return { medicines: mockMedicines, sales: mockSales };
+  }
+});
 
 export const Route = createFileRoute("/_authed/dashboard")({
+  loader: async () => await getDashboardData(),
   component: Dashboard,
+  errorComponent: ({ error }) => {
+    console.error("Dashboard Render Error:", error);
+    return (
+      <div className="p-4 text-red-500 font-mono text-sm whitespace-pre-wrap">
+        <h2>Dashboard Error</h2>
+        {String(error?.message || error)}
+        <br />
+        {error?.stack}
+      </div>
+    );
+  },
 });
 
 const pieColors = [
@@ -55,9 +84,46 @@ const quickActions = [
 
 function Dashboard() {
   const { user } = useAuth();
-  const lowStock = medicines.filter((m) => m.stock <= m.minStock);
-  const totalStock = medicines.reduce((s, m) => s + m.stock, 0);
-  const todaySales = sales.slice(0, 6).reduce((s, t) => s + t.total, 0);
+  const loaderData = Route.useLoaderData();
+  const medicines = loaderData?.medicines || [];
+  const sales = loaderData?.sales || [];
+
+  let lowStock: typeof medicines = [];
+  let totalStock = 0;
+  let todaySales = 0;
+  let categorySales: Array<{ name: string; value: number }> = [];
+  let salesTrend: Array<{ day: string; penjualan: number }> = [];
+
+  try {
+    lowStock = medicines.filter((m) => (m.stock || 0) <= (m.minStock || 0));
+    totalStock = medicines.reduce((s, m) => s + (m.stock || 0), 0);
+    todaySales = sales.slice(0, 6).reduce((s, t) => s + (t.total || 0), 0);
+
+    // Build category sales from DB
+    const catMap: Record<string, number> = {};
+    for (const m of medicines) {
+      const cat = m.category || "Lainnya";
+      catMap[cat] = (catMap[cat] || 0) + (m.stock || 0);
+    }
+    categorySales = Object.entries(catMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, value]) => ({ name, value }));
+
+    // Build daily trend from real sales
+    const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+    const dayMap: Record<string, number> = {};
+    for (const s of sales) {
+      if (!s.date) continue;
+      const parsedDate = new Date(s.date);
+      if (isNaN(parsedDate.getTime())) continue; // Skip invalid dates
+      const day = dayNames[parsedDate.getDay()];
+      dayMap[day] = (dayMap[day] || 0) + (s.total || 0);
+    }
+    salesTrend = dayNames.map((day) => ({ day, penjualan: dayMap[day] || 0 }));
+  } catch (err) {
+    console.error("Error formatting dashboard data:", err);
+  }
 
   return (
     <>
@@ -82,14 +148,13 @@ function Dashboard() {
         />
       </ScrollReveal>
 
-      {/* KPI Cards — staggered scroll reveal */}
+      {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           {
             label: "Penjualan Hari Ini",
             value: formatRupiah(todaySales),
             icon: TrendingUp,
-            trend: { value: "+12.5%", positive: true } as const,
             tone: "success" as const,
           },
           {
@@ -127,9 +192,9 @@ function Dashboard() {
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-foreground">Tren Penjualan</h3>
-                <p className="text-xs text-muted-foreground">7 hari terakhir</p>
+                <p className="text-xs text-muted-foreground">Berdasarkan hari</p>
               </div>
-              <StatusBadge label="Minggu ini" tone="info" />
+              <StatusBadge label="Semua waktu" tone="info" />
             </div>
             <ResponsiveContainer width="100%" height={260}>
               <AreaChart data={salesTrend} margin={{ left: -12, right: 8, top: 4 }}>
@@ -178,31 +243,37 @@ function Dashboard() {
 
         <ScrollReveal direction="right">
           <div className="glass rounded-2xl p-5 card-hover">
-            <h3 className="mb-1 text-base font-bold text-foreground">Kategori Terlaris</h3>
-            <p className="mb-2 text-xs text-muted-foreground">Berdasarkan unit terjual</p>
+            <h3 className="mb-1 text-base font-bold text-foreground">Kategori Stok</h3>
+            <p className="mb-2 text-xs text-muted-foreground">Distribusi stok per kategori</p>
             <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={categorySales}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  isAnimationActive={false}
-                >
-                  {categorySales.map((_, i) => (
-                    <Cell key={i} fill={pieColors[i]} stroke="transparent" />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 12,
-                    border: "1px solid var(--border)",
-                    background: "var(--popover)",
-                  }}
-                />
-              </PieChart>
+              {categorySales.length > 0 ? (
+                <PieChart>
+                  <Pie
+                    data={categorySales}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={3}
+                    isAnimationActive={false}
+                  >
+                    {categorySales.map((_, i) => (
+                      <Cell key={i} fill={pieColors[i % pieColors.length]} stroke="transparent" />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 12,
+                      border: "1px solid var(--border)",
+                      background: "var(--popover)",
+                    }}
+                  />
+                </PieChart>
+              ) : (
+                <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                  Belum ada data
+                </div>
+              )}
             </ResponsiveContainer>
             <div className="mt-2 space-y-1.5">
               {categorySales.map((c, i) => (
@@ -231,6 +302,11 @@ function Dashboard() {
               </Link>
             </div>
             <div className="space-y-1">
+              {sales.length === 0 && (
+                <p className="py-4 text-center text-sm text-muted-foreground">
+                  Belum ada transaksi.
+                </p>
+              )}
               {sales.slice(0, 6).map((t) => (
                 <div
                   key={t.id}
@@ -242,7 +318,7 @@ function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-foreground">{t.code}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {t.customer} · {t.items} item · {t.method}
+                      {t.itemsCount} item · {t.method}
                     </p>
                   </div>
                   <p className="shrink-0 text-sm font-bold text-foreground">
@@ -289,6 +365,9 @@ function Dashboard() {
               </Link>
             </div>
             <div className="space-y-1">
+              {lowStock.length === 0 && (
+                <p className="py-4 text-center text-sm text-muted-foreground">Semua stok aman.</p>
+              )}
               {lowStock.slice(0, 5).map((m) => (
                 <div
                   key={m.id}
@@ -349,7 +428,10 @@ function Dashboard() {
                         {m.category} · Stok: {m.stock}
                       </p>
                     </div>
-                    <StatusBadge label={m.expiry} tone="warning" />
+                    <StatusBadge
+                      label={new Date(m.expiry).toLocaleDateString("id-ID")}
+                      tone="warning"
+                    />
                   </div>
                 ))}
               {medicines.filter((m) => {

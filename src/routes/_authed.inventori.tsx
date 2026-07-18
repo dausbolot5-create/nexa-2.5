@@ -12,8 +12,15 @@ import { db } from "@/db";
 import { medicines as medicinesTable } from "@/db/schema";
 import { createServerFn } from "@tanstack/react-start";
 
+import { medicines as mockMedicines } from "@/lib/mockData";
+
 const getMedicines = createServerFn({ method: "GET" }).handler(async () => {
-  return await db.select().from(medicinesTable);
+  try {
+    return await db.select().from(medicinesTable);
+  } catch (error) {
+    console.error("Inventori DB Loader Error, falling back to mockData:", error);
+    return mockMedicines;
+  }
 });
 
 export const Route = createFileRoute("/_authed/inventori")({
