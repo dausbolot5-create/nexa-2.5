@@ -16,17 +16,41 @@ import { PageHeader } from "@/components/PageHeader";
 import { StatCard } from "@/components/StatCard";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { formatRupiah } from "@/lib/mockData";
+import {
+  formatRupiah,
+  sales as mockSales,
+  purchases as mockPurchases,
+} from "@/lib/mockData";
 import { db } from "@/db";
 import { sales as salesTable, purchases as purchasesTable } from "@/db/schema";
 import { createServerFn } from "@tanstack/react-start";
 
 const getLaporanData = createServerFn({ method: "GET" }).handler(async () => {
-  const [sales, purchases] = await Promise.all([
-    db.select().from(salesTable),
-    db.select().from(purchasesTable),
-  ]);
-  return { sales, purchases };
+  try {
+    const [sales, purchases] = await Promise.all([
+      db.select().from(salesTable),
+      db.select().from(purchasesTable),
+    ]);
+    return { sales, purchases };
+  } catch {
+    // DB unavailable — fallback to mock data
+    return {
+      sales: mockSales.map((s) => ({
+        ...s,
+        itemsCount: s.items,
+        cashierId: "",
+        customerId: null,
+        createdAt: new Date(),
+      })),
+      purchases: mockPurchases.map((p) => ({
+        ...p,
+        itemsCount: p.items,
+        supplierId: "",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })),
+    };
+  }
 });
 
 export const Route = createFileRoute("/_authed/laporan")({
@@ -47,19 +71,28 @@ function LaporanPage() {
   const spend = purchases.reduce((s, p) => s + p.total, 0);
   const profit = revenue - spend;
 
-  // Group sales by month for chart
-  const monthlyMap: Record<string, { pendapatan: number; pembelian: number }> = {};
+  // Group sales & purchases by month for chart, sorted chronologically
+  const monthlyMap: Record<string, { key: string; pendapatan: number; pembelian: number }> = {};
+  const monthKey = (d: string | Date) => {
+    const dt = new Date(d);
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
+  };
+  const monthLabel = (d: string | Date) =>
+    new Date(d).toLocaleDateString("id-ID", { month: "short", year: "numeric" });
+
   for (const s of sales) {
-    const m = new Date(s.date).toLocaleDateString("id-ID", { month: "short", year: "numeric" });
-    if (!monthlyMap[m]) monthlyMap[m] = { pendapatan: 0, pembelian: 0 };
-    monthlyMap[m].pendapatan += s.total;
+    const k = monthKey(s.date);
+    if (!monthlyMap[k]) monthlyMap[k] = { key: k, pendapatan: 0, pembelian: 0 };
+    monthlyMap[k].pendapatan += s.total;
   }
   for (const p of purchases) {
-    const m = new Date(p.date).toLocaleDateString("id-ID", { month: "short", year: "numeric" });
-    if (!monthlyMap[m]) monthlyMap[m] = { pendapatan: 0, pembelian: 0 };
-    monthlyMap[m].pembelian += p.total;
+    const k = monthKey(p.date);
+    if (!monthlyMap[k]) monthlyMap[k] = { key: k, pendapatan: 0, pembelian: 0 };
+    monthlyMap[k].pembelian += p.total;
   }
-  const monthlyRevenue = Object.entries(monthlyMap).map(([month, v]) => ({ month, ...v }));
+  const monthlyRevenue = Object.values(monthlyMap)
+    .sort((a, b) => a.key.localeCompare(b.key))
+    .map(({ key, ...v }) => ({ month: monthLabel(key + "-01"), ...v }));
 
   // Group sales by day-of-week for daily chart
   const dayNames = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];

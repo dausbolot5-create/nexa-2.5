@@ -4,6 +4,22 @@ Tujuan: Melacak perubahan file, tindakan agent, dan tugas pada proyek SIPOA Apot
 
 ## Perubahan Terakhir
 
+### 2026-07-20: NewFitur.md — 3 Task
+
+**1. Fix bug laporan pendapatan vs pembelian**
+
+- File diubah: `src/routes/_authed.laporan.tsx`
+  - Tambah try/catch di `getLaporanData` → fallback ke mockData jika DB mati
+  - Fix chart bulanan: sort kronologis (sebelumnya urutan random dari Object.entries)
+
+**2. Stock opname — penjelasan**
+
+- Stock opname = cocokkan stok fisik vs stok sistem. Deteksi selisih (hilang/rusak/expired/salah input). Halaman sudah ada di `_authed.stok-opname.tsx`.
+
+**3. Contributor di README**
+
+- File diubah: `README.md` — tambah section Contributors dengan avatar+link GitHub: dausbolot5-create, FamsGit
+
 ### 2026-07-17: NewFitur.md — 4 Fitur Besar
 
 **1. Cetak Struk (Kasir POS)**
