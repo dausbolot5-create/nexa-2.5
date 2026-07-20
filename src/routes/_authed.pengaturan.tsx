@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { Store, Bell, Palette, ShieldCheck, Save } from "lucide-react";
+import { Store, Bell, Palette, ShieldCheck, Save, Info, Github } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -136,6 +136,43 @@ function PengaturanPage() {
           />
           <Separator />
           <ToggleRow label="Konfirmasi hapus data" desc="Minta konfirmasi sebelum menghapus" />
+        </SectionCard>
+
+        <SectionCard icon={Info} title="Tentang Aplikasi" desc="SIPOA — Sistem Informasi Penjualan Obat Apotek">
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Aplikasi manajemen apotek berbasis web — Tugas PBL SI Apotek Kelompok 11.
+            </p>
+            <div>
+              <p className="mb-3 text-sm font-semibold text-foreground">Contributors</p>
+              <div className="flex flex-wrap gap-4">
+                {[
+                  { name: "Mufid Rosidi", github: "dausbolot5-create" },
+                  { name: "Muhammad Fahmi Amrulloh", github: "FamsGit" },
+                ].map((c) => (
+                  <a
+                    key={c.github}
+                    href={`https://github.com/${c.github}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 rounded-xl border border-border bg-muted/40 px-4 py-3 transition-colors hover:bg-muted"
+                  >
+                    <img
+                      src={`https://github.com/${c.github}.png?size=80`}
+                      alt={c.name}
+                      className="h-10 w-10 rounded-full"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">{c.name}</p>
+                      <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Github className="h-3 w-3" /> {c.github}
+                      </p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
         </SectionCard>
       </div>
 

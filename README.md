@@ -37,8 +37,3 @@ npm run dev
 ```bash
 npm run build
 ```
-
-## Contributors
-
-[![dausbolot5-create](https://github.com/dausbolot5-create.png?size=60)](https://github.com/dausbolot5-create)
-[![FamsGit](https://github.com/FamsGit.png?size=60)](https://github.com/FamsGit)
