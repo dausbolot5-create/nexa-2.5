@@ -2,10 +2,8 @@
 
 > **Tugas PBL Sistem Informasi Apotek — Kelompok 11**
 > 
-> 1) Mufid Rosidi (202511420044)
->    Username GitHub : dausbolot5-create
-> 3) Muhammad Fahmi Amrulloh (202511420045)
->    Username GitHub : FamsGit
+> 1) Mufid Rosidi (202511420044) — Username GitHub : dausbolot5-create
+> 3) Muhammad Fahmi Amrulloh (202511420045) — Username GitHub : FamsGit
 
 Aplikasi manajemen apotek berbasis web untuk mengelola penjualan, inventori, pembelian, supplier, dan pengguna.
 
